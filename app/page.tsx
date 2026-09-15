@@ -6,7 +6,7 @@ const stories = [
 
 export default function Home() {
   return <>
-    <header className="header"><div className="container nav"><div className="logo">TrendPulse <span>Daily</span></div><nav className="links"><a href="#latest">Latest</a><a href="#categories">Categories</a><a href="#about">About</a><a href="/admin/login">Admin</a></nav></div></header>
+    <header className="header"><div className="container nav"><div className="logo">TrendPulse <span>Daily</span></div><nav className="links"><a href="#latest">Latest</a><a href="#categories">Categories</a><a href="#about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a><a href="/admin/login">Admin</a></nav></div></header>
     <main>
       <section className="hero"><div className="container"><div className="eyebrow">The daily signal</div><h1>Understand what is changing. Stay ahead of what comes next.</h1><p>TrendPulse Daily brings together AI, technology, business, and India & world affairs in clear, useful, original stories.</p><a className="button" href="#latest">Explore latest stories →</a></div></section>
       <section className="section" id="latest"><div className="container"><div className="section-head"><h2>Latest stories</h2><span className="eyebrow">Updated daily</span></div><div className="grid">{stories.map((story) => <article className="card" key={story.title}><div className="category">{story.category}</div><h3>{story.title}</h3><p>{story.text}</p><div className="meta">5 min read · Editorial desk</div></article>)}</div></div></section>
