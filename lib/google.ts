@@ -13,20 +13,11 @@ export const GOOGLE_SCOPES = [
 ];
 
 export function googleOAuthClient() {
-  return new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
-  );
+  return new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 }
 
 export function googleAuthorizationUrl(state: string) {
-  return googleOAuthClient().generateAuthUrl({
-    access_type: 'offline',
-    prompt: 'consent',
-    scope: GOOGLE_SCOPES,
-    state
-  });
+  return googleOAuthClient().generateAuthUrl({ access_type: 'offline', prompt: 'consent', scope: GOOGLE_SCOPES, state });
 }
 
 export async function exchangeGoogleCode(code: string) {
@@ -42,3 +33,6 @@ export async function exchangeGoogleCode(code: string) {
 export const getBlogger = (auth: any) => google.blogger({ version: 'v3', auth });
 export const getDrive = (auth: any) => google.drive({ version: 'v3', auth });
 export const getSheets = (auth: any) => google.sheets({ version: 'v4', auth });
+export const getAnalyticsData = (auth: any) => google.analyticsdata({ version: 'v1beta', auth });
+export const getSearchConsole = (auth: any) => google.searchconsole({ version: 'v1', auth });
+export const getYouTube = (auth: any) => google.youtube({ version: 'v3', auth });
