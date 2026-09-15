@@ -1,15 +1,14 @@
 # TrendPulse Daily — Google Creator OS
 
-AI-assisted daily publication covering AI, technology, business, India, and world affairs. The repository now includes a Google-first integration layer so one Google account can power Blogger publishing plus Drive/Sheets/Analytics/Search Console/YouTube expansion.
+AI-assisted daily publication covering AI, technology, business, India, and world affairs. The repository includes the Google-first integration layer plus an editorial news pipeline with deterministic quality gates.
 
 ## Stack
 
 - Next.js App Router + TypeScript
 - Supabase PostgreSQL/Auth/Storage
-- Google OAuth 2.0
-- Google Blogger API
-- Google Sheets API
-- Google Drive / Analytics / Search Console / YouTube scopes prepared
+- Google OAuth 2.0 and Creator OS integrations
+- Gemini-assisted article drafting
+- GitHub Actions scheduled automation
 - Vercel deployment
 
 ## Local setup
@@ -22,69 +21,92 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Database migrations
+
+Run Supabase migrations in order, including:
+
+- `0001_initial_schema.sql`
+- `0002_editor_policies.sql`
+- `0003_rbac.sql`
+- `0004_news_intelligence.sql`
+- `0005_ai_generation.sql`
+- `0006_editorial_quality.sql`
+
+## News → editorial workflow
+
+```text
+RSS sources
+   ↓
+Collect + deduplicate
+   ↓
+Supabase news_items
+   ↓
+Risk + topic scoring
+   ↓
+Gemini draft generation
+   ↓
+Article + source attribution
+   ↓
+Quality gate
+   ↓
+Admin preview / edit
+   ↓
+Human source verification
+   ↓
+Publish OR schedule
+   ↓
+Public SEO article + sitemap + RSS
+```
+
+AI-generated articles are created as `pending_review`. High-risk content requires explicit source verification. Publishing requires an editorial quality score of at least 80/100; scheduling also requires at least 80/100.
+
+## SEO endpoints
+
+- `/sitemap.xml` — dynamic sitemap
+- `/robots.txt` — crawler rules
+- `/rss.xml` — published article feed
+- `/articles/[slug]` — canonical metadata, Open Graph/Twitter metadata, and NewsArticle JSON-LD
+
+## Automation
+
+GitHub Actions runs the news pipeline hourly:
+
+1. `/api/cron/collect-news`
+2. `/api/cron/process-news`
+3. `/api/cron/publish-scheduled`
+
+Configure GitHub Actions secrets `TRENDPULSE_APP_URL` and `CRON_SECRET`.
+
 ## Google setup
 
 1. Create/select a Google Cloud project.
-2. Enable the Blogger API, Google Drive API, Google Sheets API, Google Analytics Data API, Search Console API, and YouTube Data API.
-3. Configure an OAuth consent screen for the project.
-4. Create a Web application OAuth client.
-5. Add the exact redirect URI from `GOOGLE_REDIRECT_URI`, for local development:
-   `http://localhost:3000/api/google/callback`
-6. Copy the OAuth client ID and secret into `.env.local`.
-7. Set a long random `AUTH_SECRET` and use the same secret for `GOOGLE_TOKEN_ENCRYPTION_KEY` if you want one secret-management value; token encryption currently derives from `AUTH_SECRET`.
-8. Configure Supabase and run `supabase/migrations/0002_google_creator_os.sql`.
-9. Start the app and open `/admin/integrations`.
-10. Click **Connect Google** and complete Google's consent flow.
+2. Enable the required Google APIs for the integrations you use.
+3. Configure OAuth consent and a Web application OAuth client.
+4. Add the redirect URI from `GOOGLE_REDIRECT_URI`.
+5. Configure Supabase and the required Google migration.
+6. Open `/admin/integrations` and connect Google.
 
-## Required environment variables
+## Security
 
-See `.env.example`. Never commit `.env.local`, OAuth client secrets, Supabase service-role keys, refresh tokens, or cron secrets.
+Never commit `.env.local`, OAuth client secrets, Supabase service-role keys, AI API keys, refresh tokens, or cron secrets. Never expose server-only secrets through `NEXT_PUBLIC_*` variables.
 
-## Google workflow
+## Environment
 
-```text
-Google Trends / research
-        ↓
-Content idea + keywords
-        ↓
-Google Docs / internal draft
-        ↓
-Quality + source validation
-        ↓
-Supabase content item
-        ↓
-Admin approval
-        ↓
-Blogger draft/publish
-        ↓
-Search Console + Analytics
-        ↓
-Sheets performance/content log
-        ↓
-YouTube/social repurposing
-```
-
-Current affairs, politics, emergencies, health, finance, legal topics, and unverified claims remain approval-only. The system should not auto-publish those categories.
-
-## API endpoints implemented
-
-- `GET /api/google/connect` — start Google OAuth
-- `GET /api/google/callback` — validate OAuth state and securely store the refresh token
-- `POST /api/google/blogger/publish` — protected Blogger draft/publish endpoint
-- `POST /api/google/sheets/append` — protected Sheets append endpoint
-
-Protected automation endpoints require `Authorization: Bearer <CRON_SECRET>`.
+Use `.env.example` as the complete variable checklist. Production should set `NEXT_PUBLIC_SITE_URL` to the real canonical site URL and keep `CRON_SECRET` identical between Vercel and GitHub Actions.
 
 ## Roadmap
 
 1. Google OAuth + secure connection storage — implemented
 2. Blogger publishing — implemented
 3. Sheets content calendar — implemented
-4. Drive asset management
-5. Search Console reporting
-6. Analytics reporting
-7. YouTube publishing/repurposing workflow
-8. Gmail notifications
-9. Google Trends research ingestion
-10. Daily scheduled research + approval queue
-11. SEO dashboard and monetization readiness
+4. News collection + dedupe — implemented
+5. AI generation + SEO draft — implemented
+6. Editorial review + quality gates — implemented
+7. Scheduled publishing + RSS/sitemap/robots — implemented
+8. Drive asset management
+9. Search Console reporting
+10. Analytics reporting
+11. YouTube publishing/repurposing workflow
+12. Gmail notifications
+13. Google Trends research ingestion
+14. SEO dashboard and monetization readiness
