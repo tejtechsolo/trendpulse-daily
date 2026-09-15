@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedArticle } from '@/lib/articles';
+import PageView from '@/app/components/analytics/page-view';
 
 export const revalidate = 60;
 
@@ -36,6 +37,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     publisher: { '@type': 'Organization', name: process.env.NEXT_PUBLIC_SITE_NAME || 'TrendPulse Daily' },
   };
   return <main className="section container article-page">
+    <PageView articleId={article.id} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     <div className="eyebrow">{article.categories?.name ?? 'News'}</div>
     <h1 className="page-title">{article.title}</h1>
