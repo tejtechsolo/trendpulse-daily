@@ -24,7 +24,7 @@ export default async function AdminPage() {
       <article className="stat-card"><span>Drafts</span><strong>{count('draft')}</strong></article><article className="stat-card"><span>Pending review</span><strong>{count('pending_review')}</strong></article><article className="stat-card"><span>Scheduled</span><strong>{count('scheduled')}</strong></article><article className="stat-card"><span>Published today</span><strong>{publishedToday}</strong></article><article className="stat-card"><span>AI generated</span><strong>{aiGenerated ?? 0}</strong></article><article className="stat-card"><span>Rejected</span><strong>{count('rejected')}</strong></article>
     </div>
     <nav className="admin-links" aria-label="Admin navigation">
-      <Link href="/admin/articles">Articles</Link>{canCreate && <Link href="/admin/articles/new">New article</Link>}{canReview && <><Link href="/admin/review">Review queue</Link><Link href="/admin/news">News intelligence</Link></>}{canManageSettings && <><Link href="/admin/analytics">Analytics</Link><Link href="/admin/revenue">Revenue</Link></>}{canManageUsers && <Link href="/admin/users">Users</Link>}{canManageRoles && <Link href="/admin/roles">Roles & permissions</Link>}
+      <Link href="/admin/articles">Articles</Link>{canCreate && <Link href="/admin/articles/new">New article</Link>}{canReview && <><Link href="/admin/review">Review queue</Link><Link href="/admin/news">News intelligence</Link><Link href="/admin/automation">Automation monitor</Link></>}{canManageSettings && <><Link href="/admin/analytics">Analytics</Link><Link href="/admin/revenue">Revenue</Link></>}{canManageUsers && <Link href="/admin/users">Users</Link>}{canManageRoles && <Link href="/admin/roles">Roles & permissions</Link>}
     </nav>
   </main>;
 }
