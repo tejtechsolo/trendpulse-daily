@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { collectNews } from '@/lib/news/collector';
 import { dedupeNews } from '@/lib/news/dedupe';
+import { ingestNews } from '@/lib/news/ingest';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +17,13 @@ export async function GET(request: Request) {
   try {
     const collected = await collectNews();
     const unique = dedupeNews(collected);
+    const ingestion = await ingestNews(unique);
 
     return NextResponse.json({
       ok: true,
       collected: collected.length,
       unique: unique.length,
+      inserted: ingestion.inserted,
       items: unique.slice(0, 50),
       collectedAt: new Date().toISOString(),
     });
