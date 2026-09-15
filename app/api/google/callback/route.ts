@@ -12,10 +12,12 @@ export async function GET(request: Request) {
   const error = url.searchParams.get('error');
   const cookieStore = await cookies();
   const savedState = cookieStore.get('google_oauth_state')?.value;
+  const userId = cookieStore.get('google_oauth_user')?.value;
   cookieStore.delete('google_oauth_state');
+  cookieStore.delete('google_oauth_user');
 
   if (error) return NextResponse.redirect(new URL('/admin/integrations?google=cancelled', request.url));
-  if (!code || !state || !savedState || state !== savedState || !verifyGoogleState(state)) {
+  if (!code || !state || !savedState || !userId || state !== savedState || !verifyGoogleState(state)) {
     return NextResponse.json({ error: 'Invalid Google OAuth state.' }, { status: 400 });
   }
 
@@ -25,6 +27,7 @@ export async function GET(request: Request) {
 
     const supabase = createAdminClient();
     const { error: dbError } = await supabase.from('google_connections').upsert({
+      user_id: userId,
       provider: 'google',
       email: profile.email ?? null,
       google_subject: profile.id,
