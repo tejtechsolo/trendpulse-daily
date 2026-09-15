@@ -9,6 +9,13 @@ jobs:
   collect-and-process:
     runs-on: ubuntu-latest
     steps:
+      - name: Production health check
+        env:
+          APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
+        run: |
+          test -n "$APP_URL"
+          curl --fail --show-error --silent "$APP_URL/api/health"
+
       - name: Collect news
         env:
           APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
