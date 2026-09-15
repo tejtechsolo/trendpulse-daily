@@ -27,10 +27,7 @@ jobs:
           APP_URL="${APP_URL%/}"
           case "$APP_URL" in
             https://*) ;;
-            *)
-              echo "ERROR: TRENDPULSE_APP_URL must be an HTTPS URL."
-              exit 1
-              ;;
+            *) echo "ERROR: TRENDPULSE_APP_URL must be an HTTPS URL."; exit 1 ;;
           esac
           echo "Production URL configured: ${APP_URL}"
 
@@ -47,9 +44,15 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           APP_URL="${APP_URL%/}"
-          curl --fail --show-error --silent --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/collect-news"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/collect-news"
+
+      - name: Collect Google Trends signals
+        env:
+          APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          APP_URL="${APP_URL%/}"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/google-trends"
 
       - name: Process news queue
         env:
@@ -57,9 +60,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           APP_URL="${APP_URL%/}"
-          curl --fail --show-error --silent --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/process-news"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/process-news"
 
       - name: Publish due scheduled articles
         env:
@@ -67,9 +68,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           APP_URL="${APP_URL%/}"
-          curl --fail --show-error --silent --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/publish-scheduled"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/publish-scheduled"
 
       - name: Run SEO audit
         env:
@@ -77,9 +76,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           APP_URL="${APP_URL%/}"
-          curl --fail --show-error --silent --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/seo-audit"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/seo-audit"
 
       - name: Generate content opportunities
         env:
@@ -87,6 +84,4 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           APP_URL="${APP_URL%/}"
-          curl --fail --show-error --silent --retry 2 --connect-timeout 15 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/content-opportunities"
+          curl --fail --show-error --silent --retry 2 --connect-timeout 15 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/content-opportunities"
