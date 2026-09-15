@@ -42,7 +42,13 @@ export async function getPublishedArticles() {
     .order('published_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as Article[];
+
+  return (data ?? []).map((article) => ({
+    ...article,
+    categories: Array.isArray(article.categories)
+      ? article.categories[0] ?? null
+      : article.categories ?? null,
+  })) as Article[];
 }
 
 export async function getPublishedArticle(slug: string) {
@@ -57,7 +63,14 @@ export async function getPublishedArticle(slug: string) {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  return data as Article | null;
+  if (!data) return null;
+
+  return {
+    ...data,
+    categories: Array.isArray(data.categories)
+      ? data.categories[0] ?? null
+      : data.categories ?? null,
+  } as Article;
 }
 
 export async function getCategories() {
