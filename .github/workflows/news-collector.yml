@@ -1,0 +1,21 @@
+name: TrendPulse News Collector
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger collector
+        env:
+          APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$APP_URL"
+          test -n "$CRON_SECRET"
+          curl --fail --show-error --silent \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/collect-news"
