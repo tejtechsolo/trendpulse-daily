@@ -1,4 +1,4 @@
-name: TrendPulse News Collector
+name: TrendPulse News Intelligence
 
 on:
   schedule:
@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  collect:
+  collect-and-process:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger collector
+      - name: Collect news
         env:
           APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -19,3 +19,12 @@ jobs:
           curl --fail --show-error --silent \
             -H "Authorization: Bearer $CRON_SECRET" \
             "$APP_URL/api/cron/collect-news"
+
+      - name: Process news queue
+        env:
+          APP_URL: ${{ secrets.TRENDPULSE_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail --show-error --silent \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/process-news"
