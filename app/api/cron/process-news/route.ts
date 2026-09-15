@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { classifyRisk, scoreTopic } from '@/lib/news/risk';
+import { generateArticle } from '@/lib/news/generator';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,15 +11,21 @@ function authorized(request: Request) {
   return request.headers.get('authorization') === `Bearer ${secret}`;
 }
 
+function uniqueSlug(base: string, id: string) {
+  const clean = base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+  return `${clean || 'news'}-${id.slice(0, 8)}`;
+}
+
 export async function GET(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const supabase = createAdminClient();
+  const limit = Math.min(Number(process.env.NEWS_PROCESS_BATCH_SIZE ?? 5), 20);
+
   try {
-    const supabase = createAdminClient();
-    const limit = Math.min(Number(process.env.NEWS_PROCESS_BATCH_SIZE ?? 10), 50);
     const { data: items, error } = await supabase
       .from('news_items')
-      .select('id,title,description,category,status')
+      .select('id,title,description,category,source_name,source_url,published_at,status')
       .eq('status', 'new')
       .order('created_at', { ascending: true })
       .limit(limit);
@@ -26,24 +33,83 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     let processed = 0;
-    let routedToReview = 0;
+    let generated = 0;
+    let failed = 0;
 
     for (const item of items ?? []) {
       const risk = classifyRisk(item.title, item.description ?? '');
       const topicScore = scoreTopic(item.title, item.description ?? '', item.category);
-      const status = risk === 'low' && topicScore >= 60 ? 'ready_for_review' : 'ready_for_review';
 
-      const { error: updateError } = await supabase
-        .from('news_items')
-        .update({ status, risk_level: risk, topic_score: topicScore, processing_error: null })
-        .eq('id', item.id);
+      await supabase.from('news_items').update({
+        status: 'processing',
+        risk_level: risk,
+        topic_score: topicScore,
+        processing_error: null,
+      }).eq('id', item.id);
 
-      if (updateError) throw updateError;
-      processed += 1;
-      routedToReview += 1;
+      try {
+        const generatedArticle = await generateArticle({
+          title: item.title,
+          url: item.source_url,
+          source: item.source_name,
+          category: item.category,
+          publishedAt: item.published_at,
+          description: item.description,
+        });
+
+        const { data: category } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', item.category)
+          .maybeSingle();
+
+        const slug = uniqueSlug(generatedArticle.slug || generatedArticle.title, item.id);
+
+        const { data: article, error: articleError } = await supabase
+          .from('articles')
+          .insert({
+            title: generatedArticle.title,
+            slug,
+            excerpt: generatedArticle.excerpt,
+            content: generatedArticle.content,
+            category_id: category?.id ?? null,
+            status: 'pending_review',
+            risk_level: risk,
+            seo_title: generatedArticle.seoTitle,
+            seo_description: generatedArticle.seoDescription,
+            tags: generatedArticle.tags,
+          })
+          .select('id')
+          .single();
+
+        if (articleError) throw articleError;
+
+        const { error: queueError } = await supabase
+          .from('news_items')
+          .update({
+            status: 'converted',
+            article_id: article.id,
+            ai_model: process.env.AI_MODEL || 'gemini-3.5-flash-lite',
+            generated_at: new Date().toISOString(),
+            generated_payload: generatedArticle,
+            processing_error: null,
+          })
+          .eq('id', item.id);
+
+        if (queueError) throw queueError;
+
+        processed += 1;
+        generated += 1;
+      } catch (error) {
+        failed += 1;
+        await supabase.from('news_items').update({
+          status: 'ready_for_review',
+          processing_error: error instanceof Error ? error.message : 'Generation failed',
+        }).eq('id', item.id);
+      }
     }
 
-    return NextResponse.json({ ok: true, processed, routedToReview, aiGeneration: 'not configured in this phase' });
+    return NextResponse.json({ ok: true, processed, generated, failed, articlesAwaitingReview: generated });
   } catch (error) {
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : 'Processing failed' }, { status: 500 });
   }
