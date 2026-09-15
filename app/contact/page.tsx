@@ -1,0 +1,3 @@
+export default function ContactPage() {
+  return <main className="page-shell"><section className="section-heading"><p className="eyebrow">Get in touch</p><h1>Contact TrendPulse Daily</h1><p className="muted">Questions, corrections, source feedback, partnerships, or advertising enquiries.</p></section><section className="article-body"><h2>Corrections and source feedback</h2><p>If you find an inaccurate statement or have a stronger primary source, please contact the site administrator with the article URL and the specific information that should be reviewed.</p><h2>Business enquiries</h2><p>For partnerships, sponsorships, advertising, or other business enquiries, contact the TrendPulse Daily administrator.</p></section></main>;
+}
