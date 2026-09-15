@@ -16,7 +16,7 @@ export default async function ReviewPage() {
     <section className="section-heading"><p className="eyebrow">Editorial workflow</p><h1>Review queue</h1><p className="muted">Verify source facts, inspect quality checks, then publish or schedule.</p></section>
     <div className="article-list">
       {articles?.length ? articles.map((article) => {
-        const quality = evaluateArticleQuality({ title: article.title, content: article.content, excerpt: article.excerpt, seoTitle: article.seo_title, seoDescription: article.seo_description, tags: article.tags ?? [], riskLevel: article.risk_level, sourceUrl: article.sources?.url, sourceVerified: article.source_verified });
+        const quality = evaluateArticleQuality({ title: article.title, content: article.content, excerpt: article.excerpt, seoTitle: article.seo_title, seoDescription: article.seo_description, tags: article.tags ?? [], riskLevel: article.risk_level, sourceUrl: article.sources?.[0]?.url, sourceVerified: article.source_verified });
         return <article className="article-row" key={article.id}>
           <div><h2>{article.title}</h2><p className="muted">{article.categories?.[0]?.name ?? 'Uncategorized'} · Risk: {article.risk_level} · Quality: {quality.score}/100 · {article.source_verified ? 'Source verified' : 'Source needs verification'}</p></div>
           <div className="row-actions">
