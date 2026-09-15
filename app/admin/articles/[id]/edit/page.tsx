@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { getCategories } from '@/lib/articles';
-import { updateArticle } from '@/app/admin/articles/actions';
-import { evaluateArticleQuality } from '@/lib/news/quality';
+import { createClient } from '../../../../../lib/supabase/server';
+import { getCategories } from '../../../../../lib/articles';
+import { updateArticle } from '../../actions';
+import { evaluateArticleQuality } from '../../../../../lib/news/quality';
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
