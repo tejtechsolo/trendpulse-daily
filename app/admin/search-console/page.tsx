@@ -21,7 +21,7 @@ export default async function SearchConsolePage() {
     .from('search_performance')
     .select('report_date,query_text,page_url,clicks,impressions,ctr,average_position')
     .order('report_date', { ascending: false })
-    .limit(25000);
+    .range(0, 24999);
 
   if (error) {
     return <main className="page-shell"><section className="section-heading"><p className="eyebrow">Search performance</p><h1>Google Search Console</h1><p className="muted">Unable to load search performance: {error.message}</p></section></main>;
